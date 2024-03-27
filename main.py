@@ -1,23 +1,36 @@
+import os
 from src.saver import Saver
 from src.vk import VK
 from src.drive_loader import Ya
 
 
-def main():
-    target_id = input("Введите id пользователя для сохранения фотографий: ")
-    if not target_id.isdigit():
-        raise ValueError("id должен быть только цифрами")
-    disc_key = input("Введите ключ от Yandex Диска: ")
+def start(target_id, disc_key):
     print("Фотографии будут загружены в папку photos/{id_пользователя}")
-    me = VK()
-    photos = me.get_photos(target=target_id)
-    photos = Saver.parse_photo_data(photos)
-    print(f"Сохранение фотографий в папку photos/{target_id}")
-    Saver.save_local(photos, target_id)
-    print("Отправка фотографий на Яндекс Диск")
-    disc = Ya(disc_key)
-    disc.recursive_upload(f"photos/{target_id}", f"photos/{target_id}")
+    try:
+        vk = VK()
+        photos = vk.get_photos(target=target_id)
+        photos = Saver.parse_photo_data(photos)
+    except Exception as e:
+        print(e)
+    else:
+        print(f"Сохранение фотографий в папку photos/{target_id}")
+        try:
+            Saver.save_local(photos, target_id)
+        except Exception as e:
+            print(e)
+        else:
+            print("Отправка фотографий на Яндекс Диск")
+            try:
+                disc = Ya(disc_key)
+                disc.recursive_upload(os.path.join("photos", target_id), f"photos/{target_id}")
+            except Exception as e:
+                print(e)
+            finally:
+                print(f"Отчет о фотографиях сформирован в папке {target_id}")
+                Saver.create_report(photos, target_id)
 
 
 if __name__ == "__main__":
-    main()
+    user_id = input("Введите id пользователя для сохранения фотографий: ")
+    key = input("Введите ключ от Yandex Диска: ")
+    start(user_id, key)

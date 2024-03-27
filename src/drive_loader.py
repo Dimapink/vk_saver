@@ -1,3 +1,6 @@
+"""
+Модуль, отвечающий за соединение и загрузку фотографий на Яндекс Диск
+"""
 import posixpath
 import os
 import requests
@@ -11,11 +14,17 @@ class Ya:
         try:
             self.disc.get_disk_info()
         except yadisk.exceptions.UnauthorizedError as e:
-            print("Проблема взаимодействия с диском, проверьте ключ")
+            print(f"Проблема взаимодействия с диском, проверьте ключ, {e}")
         except requests.exceptions.ConnectionError as e:
-            print("Проблема взаимодействия с диском, проверьте интернет соединение")
+            print(f"Проблема взаимодействия с диском, проверьте интернет соединение, {e}")
 
     def recursive_upload(self, from_dir: str, to_dir: str):
+        """
+        Метод загрузки фотографий на Яндекс Диск
+        :param from_dir: папка, откуда будут браться фотографии
+        :param to_dir: папка на диске куда будет сохранены фото
+        :return: None
+        """
         if not self.disc.is_dir("photos"):
             self.disc.mkdir("photos")
         for root, dirs, files in os.walk(from_dir):
@@ -36,11 +45,4 @@ class Ya:
                     self.disc.upload(in_path, file_path)
                 except yadisk.exceptions.PathExistsError:
                     pass
-        print(f"Диск пользователя {self.disc.get_disk_info().user.display_name} был обновлен")
-
-
-
-# x = Ya(disc_key)
-# print(x.disc.get_disk_info().user.display_name)
-# x.disc.get_files()
-# x.recursive_upload("photos/", "test")
+        print(f"Диск пользователя {self.disc.get_disk_info().user.display_name} был обновлен\n")
